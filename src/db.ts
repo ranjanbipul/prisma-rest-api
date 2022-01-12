@@ -99,13 +99,17 @@ CountAggregate> extends Omit<FindMany<
   select?: CountAggregate | true
 }
 
+type FilterJson<T> = {
+  [P in keyof T]?: string extends T[P] ? (number extends T[P]? any: T[P]) : T[P];
+}
+
 export type Delegate<
   Model extends Record<string, unknown>,
   Select,
   Include,
   ScalarFieldEnum,
   UniqueInput extends Partial<Model>,
-  Input extends Partial<Model>,
+  Input extends FilterJson<Model>,
   CreateInput,
   CreateManyInput,
   UpdateInput,

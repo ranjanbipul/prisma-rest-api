@@ -60,7 +60,10 @@ interface DeleteManyArgs<Input> {
 interface CountArgs<Model, Select, Include, Input, UniqueInput, ScalarFieldEnum, CountAggregate> extends Omit<FindMany<Model, Select, Include, Input, UniqueInput, ScalarFieldEnum>, 'include' | 'select'> {
     select?: CountAggregate | true;
 }
-export declare type Delegate<Model extends Record<string, unknown>, Select, Include, ScalarFieldEnum, UniqueInput extends Partial<Model>, Input extends Partial<Model>, CreateInput, CreateManyInput, UpdateInput, UpdateManyInput, CountAggregate, AggregateArgs, AggregateResult> = {
+declare type FilterJson<T> = {
+    [P in keyof T]?: string extends T[P] ? (number extends T[P] ? any : T[P]) : T[P];
+};
+export declare type Delegate<Model extends Record<string, unknown>, Select, Include, ScalarFieldEnum, UniqueInput extends Partial<Model>, Input extends FilterJson<Model>, CreateInput, CreateManyInput, UpdateInput, UpdateManyInput, CountAggregate, AggregateArgs, AggregateResult> = {
     findUnique: (args: FindUnique<Model, Select, Include, UniqueInput>) => Promise<Model | null>;
     findFirst: (args: Find<Model, Select, Include, Input, UniqueInput, ScalarFieldEnum>) => Promise<Model | null>;
     findMany: (args: FindMany<Model, Select, Include, Input, UniqueInput, ScalarFieldEnum>) => Promise<Model[]>;
