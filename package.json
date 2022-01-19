@@ -1,6 +1,6 @@
 {
   "name": "prisma-rest-api",
-  "version": "0.0.2-beta.0",
+  "version": "0.0.2-beta.1",
   "description": "Rest API using Prisma",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -132,11 +132,13 @@ export class ModelApi<Model extends Record<string, unknown>,
         clause.skip = page._offset;
         clause.take = page._limit;
       }
+      // Multiple id filter
       if (Array.isArray(req.query.id)) {
         clause["where"] = Object.assign({}, clause["where"], {
           id: { in: req.query.id as string[] },
         });
       }
+      // Order By
       if (req.query._sort) {
         clause.orderBy = {
           [req.query._sort as string]: req.query._order
@@ -144,6 +146,27 @@ export class ModelApi<Model extends Record<string, unknown>,
             : "asc",
         } as Enumerable<OrderByInput<Model>>;
       }
+
+      // Filter
+      if (this.resource.filterSchema) {
+        const filterResult = this.resource.filterSchema.validate(req.query, {
+          stripUnknown: { objects: true },
+        });
+        console.log("Filter schema", filterResult);
+        if (filterResult.error) {
+          res
+            .status(400)
+            .json({
+              errors: filterResult.error.details.map((x) => ({
+                message: x.message,
+                path: x.path,
+              })),
+            });
+          return;
+        }
+        clause["where"] = {...filterResult.value,...clause["where"]}
+      }
+
       const results = await this.dbClient.findMany(clause);
       if (this.resource.pagination && !req.query.id) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -71,7 +82,7 @@ var ModelApi = /** @class */ (function () {
         this.router = express_1.default.Router();
         this.isAccessAllowed = getAuthorize(this.resource.accessMap);
         this.router.get("/", function (req, res) { return __awaiter(_this, void 0, void 0, function () {
-            var clause, acsResult, page, results, skip, take, orderBy, include, select, remain, count;
+            var clause, acsResult, page, filterResult, results, skip, take, orderBy, include, select, remain, count;
             var _a, _b;
             return __generator(this, function (_c) {
                 switch (_c.label) {
@@ -101,17 +112,38 @@ var ModelApi = /** @class */ (function () {
                             clause.skip = page._offset;
                             clause.take = page._limit;
                         }
+                        // Multiple id filter
                         if (Array.isArray(req.query.id)) {
                             clause["where"] = Object.assign({}, clause["where"], {
                                 id: { in: req.query.id },
                             });
                         }
+                        // Order By
                         if (req.query._sort) {
                             clause.orderBy = (_b = {},
                                 _b[req.query._sort] = req.query._order
                                     ? req.query._order.toLowerCase()
                                     : "asc",
                                 _b);
+                        }
+                        // Filter
+                        if (this.resource.filterSchema) {
+                            filterResult = this.resource.filterSchema.validate(req.query, {
+                                stripUnknown: { objects: true },
+                            });
+                            console.log("Filter schema", filterResult);
+                            if (filterResult.error) {
+                                res
+                                    .status(400)
+                                    .json({
+                                    errors: filterResult.error.details.map(function (x) { return ({
+                                        message: x.message,
+                                        path: x.path,
+                                    }); }),
+                                });
+                                return [2 /*return*/];
+                            }
+                            clause["where"] = __assign(__assign({}, filterResult.value), clause["where"]);
                         }
                         return [4 /*yield*/, this.dbClient.findMany(clause)];
                     case 2:
